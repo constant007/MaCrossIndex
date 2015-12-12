@@ -40,6 +40,8 @@ def handle_data(account):                  # 每个交易日的买入卖出指�
         if account.position.secpos.get(fund, 0) >= 0:
             order_to(universe_tuple[0],0)
     else :
+        if isnan(maIndexShort.values[-1]) or isnan(maIndexLong.values[-1]) :
+            print 'Warning : MA is NaN.'
         pass
     
 
