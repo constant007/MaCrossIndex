@@ -1,5 +1,6 @@
 #适用于优矿
 #MA短周期和长周期金叉的交易策略
+import math
 import numpy as np
 import pandas as pd
 from pandas import Series,DataFrame
