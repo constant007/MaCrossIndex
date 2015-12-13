@@ -36,10 +36,11 @@ def handle_data(account):                  # 每个交易日的买入卖出指�
     #maIndexShort.values[-1] 就会使用未来的数据
     if maIndexShort.values[-2]>= maIndexLong.values[-2]:
         if account.position.secpos.get(fund, 0) == 0:
-            approximationAmount = int(account.cash/hist[universe_tuple[0]][-1]/100.0) * 100
+            # *1.03 为了防跳空高开，买不到那么多的头寸
+            approximationAmount = int(account.cash/(hist[universe_tuple[0]][-1]*1.03)/100.0) * 100
             order(universe_tuple[0],approximationAmount)
     elif maIndexShort.values[-2] < maIndexLong.values[-2]:
-        if account.position.secpos.get(fund, 0) >= 0:
+        if account.position.secpos.get(fund, 0) > 0:
             order_to(universe_tuple[0],0)
     else :
         if isnan(maIndexShort.values[-1]) or isnan(maIndexLong.values[-1]) :
