@@ -15,8 +15,8 @@ refresh_rate = 1                           # 调仓频率，表示执行handle_d
 #self defined data
 #最优参数，ma_short=8 ma_long=26;当开盘MA3和MA23金叉时买入，MA3和MA23死叉时卖出
 #short(8 9 10 11)  long(25 26 27 28)
-window_short = 3
-window_long = 23
+window_short = 8
+window_long = 26
 universe_tuple = tuple(universe)
 
 def initialize(account):                   # 初始化虚拟账户状态
