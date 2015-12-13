@@ -16,7 +16,7 @@ freq = 'd'                                 # 策略类型，'d'表示日间策�
 refresh_rate = 1                           # 调仓频率，表示执行handle_data的时间间隔，若freq = 'd'时间间隔的单位为交易日，若freq = 'm'时间间隔为分钟
 
 #self defined data
-#最优参数，ma_short=8 ma_long=26;当开盘MA3和MA23金叉时买入，MA3和MA23死叉时卖出
+#最优参数，ma_short=8 ma_long=26;当开盘MA8和MA26金叉时买入，MA8和MA26死叉时卖出
 #short(8 9 10 11)  long(25 26 27 28)
 window_short = 8
 window_long = 26
@@ -40,7 +40,7 @@ def handle_data(account):                  # 每个交易日的买入卖出指�
     if maIndexShort.values[-2]>= maIndexLong.values[-2]:
         if account.position.secpos.get(fund, 0) == 0:
             # *1.03 为了防跳空高开，买不到那么多的头寸
-            approximationAmount = int(account.cash/(hist[universe_tuple[0]][-1]*1.03)/100.0) * 100
+            approximationAmount = int(account.cash/(hist[universe_tuple[0]][-1]*1.02)/100.0) * 100
             order(universe_tuple[0],approximationAmount)
     elif maIndexShort.values[-2] < maIndexLong.values[-2]:
         if account.position.secpos.get(fund, 0) > 0:
