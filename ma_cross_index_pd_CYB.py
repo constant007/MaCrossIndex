@@ -29,20 +29,22 @@ def handle_data(account):                  # 每个交易日的买入卖出指�
     hist = account.get_attribute_history('closePrice',window_long)
     fund = universe_tuple[0]
     today = account.current_date
-    preday = today + timedelta(days = -100)
-
-    cIndex = DataAPI.MktIdxdGet(ticker='399006',beginDate=preday,endDate=today,field=["tradeDate","closeIndex"],pandas="1")
+    preday100 = today + timedelta(days = -100)
+    preday1 = today + timedelta(days = -100)
+    
+    #preday1 使用today会使用未来数据；更改这个后，maIndexShort.values[-1]可以使用；
+    cIndex = DataAPI.MktIdxdGet(ticker='399006',beginDate=preday100,endDate=preday1,field=["tradeDate","closeIndex"],pandas="1")
     
     maIndexShort  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_short),2)
     maIndexLong  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_long),2)
     
-    #maIndexShort.values[-1] 就会使用未来的数据
-    if maIndexShort.values[-2]>= maIndexLong.values[-2]:
+    #maIndexShort.values[-1] 就会使用未来的数据 （不再有效）
+    if maIndexShort.values[-1]>= maIndexLong.values[-1]:
         if account.position.secpos.get(fund, 0) == 0:
             # *1.02 为了防跳空高开，买不到那么多的头寸
             approximationAmount = int(account.cash/(hist[universe_tuple[0]][-1]*1.02)/100.0) * 100
             order(universe_tuple[0],approximationAmount)
-    elif maIndexShort.values[-2] < maIndexLong.values[-2]:
+    elif maIndexShort.values[-1] < maIndexLong.values[-1]:
         if account.position.secpos.get(fund, 0) > 0:
             order_to(universe_tuple[0],0)
     else :
