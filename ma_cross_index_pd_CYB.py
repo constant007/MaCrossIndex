@@ -30,10 +30,10 @@ def handle_data(account):                  # 每个交易日的买入卖出指�
     fund = universe_tuple[0]
     today = account.current_date
     preday100 = today + timedelta(days = -100)
-    preday1 = today + timedelta(days = -100)
+    yestoday = today + timedelta(days = -100)
     
-    #preday1 使用today会使用未来数据；更改这个后，maIndexShort.values[-1]可以使用；
-    cIndex = DataAPI.MktIdxdGet(ticker='399006',beginDate=preday100,endDate=preday1,field=["tradeDate","closeIndex"],pandas="1")
+    #yestoday 使用today会使用未来数据；更改这个后，maIndexShort.values[-1]可以使用；
+    cIndex = DataAPI.MktIdxdGet(ticker='399006',beginDate=preday100,endDate=yestoday,field=["tradeDate","closeIndex"],pandas="1")
     
     maIndexShort  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_short),2)
     maIndexLong  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_long),2)
