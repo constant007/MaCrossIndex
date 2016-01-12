@@ -28,13 +28,6 @@ window_short = 3
 window_long = 20
 universe_tuple = tuple(universe)
 
-#def getema(cIndex n):
-#    k=2.0/(n+1)
-#    ema=cIndex[0]
-#    for(i=0;i<n;i++)
-#        ema=cIndex[-1]*k+ema(1-k)
-        
-
 def initialize(account):                   # 初始化虚拟账户状态
     pass
 
@@ -44,7 +37,6 @@ def handle_data(account):                  # 每个交易日的买入卖出指�
     today = account.current_date
     preday = today + timedelta(days = -100)
     yestoday = today + timedelta(days = -1)
-
 
     cIndex = DataAPI.MktIdxdGet(ticker='399006',beginDate=preday,endDate=yestoday,field=["tradeDate","closeIndex"],pandas="1")
     maIndexShort  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_short),2)
