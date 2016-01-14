@@ -36,17 +36,16 @@ StopRate_on = 0
 universe_tuple = tuple(universe)
 
 
-global high_value
-global now_value
-global flag
-global approximationAmount
-global price_0
+global high_value,now_value,flag
+global approximationAmount,price_0
 high_value =0
 flag = 1
-BuyStep = 5  #第一次买入1/3；第二次买入1/3,当价格比第一次买入价格涨BuyStep%买入；当价格再涨BuyStep%，第三次买入满仓；BuyStep=0 采用单次建仓
+BuyStep = 0  #第一次买入1/3；第二次买入1/3,当价格比第一次买入价格涨BuyStep%买入；当价格再涨BuyStep%，第三次买入满仓；BuyStep=0 采用单次建仓
 approximationAmount=0
-price_0=0
+avg_price=0
 stop_rate=90
+
+
 
 
 def initialize(account):                   # 初始化虚拟账户状态
@@ -54,64 +53,52 @@ def initialize(account):                   # 初始化虚拟账户状态
 
 def handle_data(account):                  # 每个交易日的买入卖出指令
     hist = account.get_attribute_history('closePrice',window_long)
-    fund = universe_tuple[0]
+    etf = universe_tuple[0]
     today = account.current_date
     preday = today + timedelta(days = -100)
     yestoday = today + timedelta(days = -1)
     
-    global high_value
-    global now_value
-    global flag
-    
-    global approximationAmount
-    global price_0
+    global high_value,now_value,flag
+    global approximationAmount,avg_price
     
     cIndex = DataAPI.MktIdxdGet(ticker='399006',beginDate=preday,endDate=yestoday,field=["tradeDate","closeIndex"],pandas="1")
     maIndexShort  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_short),2)
     maIndexLong  = np.round(pd.rolling_mean(cIndex['closeIndex'],window=window_long),2)
     filter_std = np.std(cIndex['closeIndex'][-window_long:],axis=0)  #not used
+    today_price = hist[universe_tuple[0]][-1]
 
     if maIndexShort.values[-1] > maIndexShort.values[-2]  and maIndexLong.values[-1] > maIndexLong.values[-2] and flag==1:
-        now_value = account.position.secpos.get(fund, 0)*hist[universe_tuple[0]][-1]
-        if account.position.secpos.get(fund, 0) == 0:
+        now_value = account.position.secpos.get(etf, 0)*today_price
+        if account.position.secpos.get(etf, 0) == 0:
             if BuyStep != 0 :
-                approximationAmount = int(account.cash / (hist[universe_tuple[0]][-1]*1.02)/1000.0) * 300
+                approximationAmount = int(account.cash / (today_price*1.02)/1000.0) * 300
             else :
-                approximationAmount = int(account.cash / (hist[universe_tuple[0]][-1]*1.02)/100.0) * 100
-            price_0 = hist[universe_tuple[0]][-1]
-            order(universe_tuple[0],approximationAmount)
-        elif account.position.secpos.get(fund, 0) == approximationAmount and  hist[universe_tuple[0]][-1] > (1+BuyStep/100.0)*price_0 and BuyStep !=0:
-            #print today
-            #print '++++++++'
-            #print 1+step/100.0
-            order(universe_tuple[0],approximationAmount) 
-        elif account.position.secpos.get(fund, 0) == 2*approximationAmount and  hist[universe_tuple[0]][-1] > (1+2*BuyStep/100.0)*price_0 and BuyStep !=0 :
-            #print today
-            #print '++++++++22222'
-            #print 1+2*step/100.0
-            lastAmount = int(account.cash / (hist[universe_tuple[0]][-1]*1.02)/100.0) * 100
+                approximationAmount = int(account.cash / (today_price*1.02)/100.0) * 100
+            avg_price = hist[universe_tuple[0]][-1]
+            order(etf,approximationAmount)
+        elif account.position.secpos.get(etf, 0) == approximationAmount and  today_price > (1+BuyStep/100.0)*avg_price and BuyStep !=0 :
+            order(etf,approximationAmount) 
+        elif account.position.secpos.get(etf, 0) == 2*approximationAmount and  today_price > (1+2*BuyStep/100.0)*avg_price and BuyStep !=0 :
+            lastAmount = int(account.cash / (today_price*1.02)/100.0) * 100
             #print 'lastAmount :{0:20d} m:{1:20d}'.format(lastAmount,account.position.secpos.get(fund, 0))
-            high_value = (lastAmount+account.position.secpos.get(fund, 0))*hist[universe_tuple[0]][-1]
-            order(universe_tuple[0],lastAmount)  
+            high_value = (lastAmount+account.position.secpos.get(etf, 0))*today_price
+            order(etf,lastAmount)  
         elif StopRate_on ==1:
             if high_value < now_value :
                 high_value = now_value
             elif now_value < (1 - stop_rate/100.0)*high_value and flag!=0 :
-                #print today
-                #print high_value
-                #print now_value
-                #print 'v_sell###########'
                 high_value = 0;
                 flag =0
-                order_to(universe_tuple[0],0)
+                order_to(etf,0)
     elif maIndexShort.values[-1] < maIndexShort.values[-2] and maIndexLong.values[-1] < maIndexLong.values[-2]  :
         flag=1
-        if account.position.secpos.get(fund, 0) > 0:
-            order_to(universe_tuple[0],0)
+        if account.position.secpos.get(etf, 0) > 0:
+            order_to(etf,0)
     else :
         #if isnan(maIndexShort.values[-1]) or isnan(maIndexLong.values[-1]) :
         #    print 'Warning : MA is NaN.'
         pass
+
 
 # for paramenter opt 
 print 'window windows  annualized_return     sharpe    max_drawdown BuyStep  stop_rate StopRate_on  '
